@@ -180,6 +180,7 @@
     const entries = {};
     const water = {};
     const habits = {};
+    const weights = {};
     const samplePlan = [
       { offset: -6, breakfast: ['菠菜蘑菇蛋卷', '1 份', 390, 24, 18, 25, '08:15'], lunch: ['照烧鸡腿饭', '1 份', 620, 35, 76, 19, '12:40'], dinner: ['番茄豆腐蔬菜汤', '1 碗', 560, 28, 66, 18, '19:10'] },
       { offset: -5, breakfast: ['香蕉花生酱吐司', '2 片', 410, 14, 52, 17, '07:55'], lunch: ['牛肉藜麦能量碗', '1 碗', 720, 46, 78, 23, '12:25'], dinner: ['虾仁西兰花炒饭', '1 份', 590, 35, 72, 18, '19:00'] },
@@ -217,6 +218,7 @@
       entries,
       water,
       habits,
+      weights,
       meta: { demo: true, createdAt: new Date().toISOString() }
     };
   }
@@ -257,12 +259,25 @@
       }
     }
     const habits = raw.habits && typeof raw.habits === 'object' ? raw.habits : {};
+    const weights = {};
+    if (raw.weights && typeof raw.weights === 'object') {
+      for (const [key, item] of Object.entries(raw.weights)) {
+        const value = item && typeof item === 'object' ? item.weight : item;
+        const weight = Number(value);
+        if (!Number.isFinite(weight) || weight < 20 || weight > 300) continue;
+        weights[key] = {
+          weight: round1(weight),
+          createdAt: String(item?.createdAt || new Date().toISOString())
+        };
+      }
+    }
     return {
       version: 1,
       goal,
       entries,
       water,
       habits,
+      weights,
       meta: { demo: Boolean(raw.meta && raw.meta.demo), createdAt: raw.meta?.createdAt || new Date().toISOString() }
     };
   }
@@ -309,6 +324,206 @@
 
   function totalsFor(key) {
     return sumEntries(getEntries(key));
+  }
+
+  function getWeightRecords() {
+    if (!state.weights || typeof state.weights !== 'object') return [];
+    return Object.entries(state.weights)
+      .map(([date, item]) => {
+        const value = item && typeof item === 'object' ? item.weight : item;
+        const weight = Number(value);
+        if (!Number.isFinite(weight) || weight < 20 || weight > 300) return null;
+        return { date, weight, createdAt: item?.createdAt || '' };
+      })
+      .filter(Boolean)
+      .sort((a, b) => a.date.localeCompare(b.date));
+  }
+
+  function weightOnOrBefore(key) {
+    return getWeightRecords().filter((record) => record.date <= key).at(-1) || null;
+  }
+
+  function buildWeightSparkline(records, endDate, days = 14) {
+    const startDate = addDays(endDate, -(days - 1));
+    const startKey = dateKey(startDate);
+    const endKey = dateKey(endDate);
+    const points = records.filter((record) => record.date >= startKey && record.date <= endKey);
+    if (!points.length) return '<div class="weight-sparkline-empty">还没有体重数据</div>';
+    const width = 280;
+    const height = 68;
+    const padX = 7;
+    const padTop = 9;
+    const padBottom = 7;
+    const values = points.map((record) => record.weight);
+    let min = Math.min(...values);
+    let max = Math.max(...values);
+    if (max - min < 0.6) {
+      min -= 0.4;
+      max += 0.4;
+    } else {
+      min -= 0.3;
+      max += 0.3;
+    }
+    const coords = points.map((record) => {
+      const offset = Math.round((parseDateKey(record.date) - startDate) / 86400000);
+      const x = padX + (offset / Math.max(1, days - 1)) * (width - padX * 2);
+      const y = padTop + ((max - record.weight) / (max - min)) * (height - padTop - padBottom);
+      return { x, y, weight: record.weight, date: record.date };
+    });
+    const line = coords.map((point) => `${point.x.toFixed(1)},${point.y.toFixed(1)}`).join(' ');
+    const area = coords.length > 1
+      ? `M ${coords[0].x.toFixed(1)} ${height - padBottom} L ${line.replaceAll(' ', ' L ')} L ${coords.at(-1).x.toFixed(1)} ${height - padBottom} Z`
+      : '';
+    const last = coords.at(-1);
+    return `
+      <svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="none" role="img" aria-label="最近 14 天体重趋势">
+        <defs>
+          <linearGradient id="weightSparkGradient" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#78cdb1" stop-opacity=".28"></stop>
+            <stop offset="100%" stop-color="#78cdb1" stop-opacity="0"></stop>
+          </linearGradient>
+        </defs>
+        ${area ? `<path d="${area}" fill="url(#weightSparkGradient)"></path>` : ''}
+        ${coords.length > 1 ? `<polyline points="${line}" fill="none" stroke="#55b195" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"></polyline>` : ''}
+        <circle cx="${last.x.toFixed(1)}" cy="${last.y.toFixed(1)}" r="3.5" fill="#55b195" stroke="#fff" stroke-width="2" vector-effect="non-scaling-stroke"></circle>
+      </svg>`;
+  }
+
+  function renderWeightCard() {
+    const records = getWeightRecords().filter((record) => record.date <= selectedDate);
+    const latest = records.at(-1) || null;
+    const previous = records.length > 1 ? records.at(-2) : null;
+    const value = $('#currentWeightValue');
+    const change = $('#weightChange');
+    const lastDate = $('#weightLastDate');
+    const sparkline = $('#weightSparkline');
+    if (!latest) {
+      if (value) value.textContent = '—';
+      if (change) {
+        change.textContent = '记录一次体重，开始趋势';
+        change.className = 'weight-change';
+      }
+      if (lastDate) lastDate.textContent = '还没有体重记录';
+      if (sparkline) sparkline.innerHTML = '<div class="weight-sparkline-empty">还没有体重数据</div>';
+      return;
+    }
+    if (value) value.textContent = latest.weight.toFixed(1);
+    if (change) {
+      if (previous) {
+        const diff = round1(latest.weight - previous.weight);
+        change.textContent = `较上次 ${diff > 0 ? '+' : ''}${diff.toFixed(1)} kg`;
+        change.className = `weight-change ${diff < 0 ? 'is-down' : diff > 0 ? 'is-up' : ''}`;
+      } else {
+        change.textContent = '首次记录 · 继续坚持';
+        change.className = 'weight-change';
+      }
+    }
+    if (lastDate) lastDate.textContent = `最近记录 · ${formatShortDate(parseDateKey(latest.date))}`;
+    if (sparkline) sparkline.innerHTML = buildWeightSparkline(records, parseDateKey(selectedDate), 14);
+  }
+
+  function buildWeightLineChart(records, startDate, endDate) {
+    if (!records.length) {
+      return `<div class="weight-chart-empty"><strong>还没有体重趋势</strong><span>记录体重后，这里会显示最近 30 天的变化。</span></div>`;
+    }
+    const width = 1000;
+    const height = 225;
+    const left = 48;
+    const right = 22;
+    const top = 18;
+    const bottom = 31;
+    const plotWidth = width - left - right;
+    const plotHeight = height - top - bottom;
+    const totalDays = Math.max(1, Math.round((endDate - startDate) / 86400000));
+    const values = records.map((record) => record.weight);
+    let min = Math.min(...values);
+    let max = Math.max(...values);
+    const spread = Math.max(0.8, max - min);
+    min -= spread * 0.16;
+    max += spread * 0.16;
+    const coords = records.map((record) => {
+      const offset = Math.round((parseDateKey(record.date) - startDate) / 86400000);
+      const x = left + (offset / totalDays) * plotWidth;
+      const y = top + ((max - record.weight) / (max - min)) * plotHeight;
+      return { x, y, weight: record.weight, date: record.date };
+    });
+    const points = coords.map((point) => `${point.x.toFixed(1)},${point.y.toFixed(1)}`).join(' ');
+    const area = coords.length > 1
+      ? `M ${coords[0].x.toFixed(1)} ${top + plotHeight} L ${points.replaceAll(' ', ' L ')} L ${coords.at(-1).x.toFixed(1)} ${top + plotHeight} Z`
+      : '';
+    const grid = Array.from({ length: 4 }, (_, index) => {
+      const ratio = index / 3;
+      const y = top + ratio * plotHeight;
+      const label = max - ratio * (max - min);
+      return `<line class="weight-chart-grid" x1="${left}" y1="${y.toFixed(1)}" x2="${width - right}" y2="${y.toFixed(1)}"></line><text class="weight-chart-label" x="${left - 9}" y="${(y + 3).toFixed(1)}" text-anchor="end">${label.toFixed(1)}</text>`;
+    }).join('');
+    const midDate = addDays(startDate, Math.round(totalDays / 2));
+    const xLabels = [startDate, midDate, endDate].map((date) => {
+      const offset = Math.round((date - startDate) / 86400000);
+      const x = left + (offset / totalDays) * plotWidth;
+      return `<text class="weight-chart-label" x="${x.toFixed(1)}" y="${height - 7}" text-anchor="middle">${formatShortDate(date)}</text>`;
+    }).join('');
+    return `
+      <svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="none" role="img" aria-label="最近 30 天体重变化">
+        <defs>
+          <linearGradient id="weightTrendAreaGradient" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#84d5ba" stop-opacity=".3"></stop>
+            <stop offset="100%" stop-color="#84d5ba" stop-opacity="0"></stop>
+          </linearGradient>
+        </defs>
+        ${grid}
+        ${xLabels}
+        ${area ? `<path d="${area}" fill="url(#weightTrendAreaGradient)"></path>` : ''}
+        ${coords.length > 1 ? `<polyline points="${points}" fill="none" stroke="#55b195" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"></polyline>` : ''}
+        ${coords.map((point, index) => `<circle class="weight-chart-point ${index === coords.length - 1 ? 'latest' : ''}" cx="${point.x.toFixed(1)}" cy="${point.y.toFixed(1)}" r="${index === coords.length - 1 ? 4.4 : 3.1}" vector-effect="non-scaling-stroke"><title>${formatDateLabel(point.date)} · ${point.weight.toFixed(1)} kg</title></circle>`).join('')}
+      </svg>`;
+  }
+
+  function renderWeightTrend() {
+    const endDate = new Date();
+    const startDate = addDays(endDate, -29);
+    const startKey = dateKey(startDate);
+    const endKey = dateKey(endDate);
+    const records = getWeightRecords().filter((record) => record.date >= startKey && record.date <= endKey);
+    const latest = records.at(-1) || null;
+    const first = records[0] || null;
+    const current = $('#weightTrendCurrent');
+    const change = $('#weightTrendChange');
+    const count = $('#weightTrendCount');
+    const chart = $('#weightLineChart');
+    if (current) current.innerHTML = latest ? `${latest.weight.toFixed(1)}<small> kg</small>` : '—<small> kg</small>';
+    if (count) count.innerHTML = `${records.length}<small> 次</small>`;
+    if (change) {
+      if (latest && first && records.length > 1) {
+        const diff = round1(latest.weight - first.weight);
+        change.textContent = `${diff > 0 ? '+' : ''}${diff.toFixed(1)} kg`;
+        change.style.color = diff < 0 ? '#378b73' : diff > 0 ? '#b47a51' : '#54736a';
+      } else {
+        change.textContent = '—';
+        change.style.color = '#54736a';
+      }
+    }
+    if (chart) chart.innerHTML = buildWeightLineChart(records, startDate, endDate);
+  }
+
+  function openWeightDialog(anchorKey = selectedDate) {
+    const dialog = $('#weightDialog');
+    const form = $('#weightForm');
+    if (!dialog || !form) return;
+    form.reset();
+    const date = anchorKey && anchorKey <= todayKey() ? anchorKey : todayKey();
+    const existing = state.weights?.[date];
+    const latest = weightOnOrBefore(date);
+    $('#weightDateInput').value = date;
+    $('#weightDateInput').max = todayKey();
+    $('#weightInput').max = '300';
+    $('#weightInput').value = existing ? Number(existing.weight).toFixed(1) : latest ? latest.weight.toFixed(1) : '';
+    dialog.showModal();
+    setTimeout(() => {
+      const input = $('#weightInput');
+      input?.focus();
+      input?.select();
+    }, 80);
   }
 
   function setText(selector, value) {
@@ -404,6 +619,7 @@
     renderMeals(entries);
     renderMacros(totals);
     renderWater(water);
+    renderWeightCard();
     renderWeekly();
     renderHabits();
   }
@@ -703,6 +919,7 @@
     }
     setText('#insightTitle', insightTitle);
     setText('#insightText', insightText);
+    renderWeightTrend();
   }
 
   function renderGoals() {
@@ -1057,6 +1274,7 @@
       entries: state.entries,
       water: state.water,
       habits: state.habits,
+      weights: state.weights,
       meta: { ...state.meta, demo: false }
     };
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json;charset=utf-8' });
@@ -1108,6 +1326,12 @@
     $('#quickAddButton')?.addEventListener('click', () => openFoodDialog('breakfast'));
     $('#mobileAddButton')?.addEventListener('click', () => openFoodDialog('breakfast'));
     $('#addMealButton')?.addEventListener('click', () => openFoodDialog('breakfast'));
+    $('#addWeightButton')?.addEventListener('click', () => openWeightDialog(selectedDate));
+    $('#addWeightFromTrends')?.addEventListener('click', () => openWeightDialog(todayKey()));
+    $('#viewWeightTrend')?.addEventListener('click', () => {
+      setView('trends');
+      setTimeout(() => $('#weightTrendCard')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 120);
+    });
 
     $('#prevDateButton')?.addEventListener('click', () => {
       selectedDate = dateKey(addDays(parseDateKey(selectedDate), -1));
@@ -1261,6 +1485,29 @@
       showToast(entryId ? '记录已更新' : `已添加「${entry.name}」`);
     });
 
+    $('#weightForm')?.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const data = new FormData(event.currentTarget);
+      const date = String(data.get('weightDate') || todayKey());
+      const weight = Number(data.get('weight'));
+      if (!Number.isFinite(weight) || weight < 20 || weight > 300) {
+        showToast('请输入 20–300 kg 之间的体重');
+        return;
+      }
+      if (date > todayKey()) {
+        showToast('不能记录未来日期的体重');
+        return;
+      }
+      const updating = Boolean(state.weights?.[date]);
+      if (!state.weights) state.weights = {};
+      state.weights[date] = { weight: round1(weight), createdAt: new Date().toISOString() };
+      selectedDate = date;
+      saveState();
+      closeDialog('weightDialog');
+      renderAll();
+      showToast(updating ? '当天体重已更新' : '体重记录已保存');
+    });
+
     $('#goalForm')?.addEventListener('submit', (event) => {
       event.preventDefault();
       const data = new FormData(event.currentTarget);
@@ -1295,6 +1542,7 @@
             entries: {},
             water: {},
             habits: {},
+            weights: {},
             meta: { demo: false, createdAt: new Date().toISOString() }
           };
           selectedDate = todayKey();
@@ -1331,7 +1579,7 @@
       if (typeof callback === 'function') callback();
     });
 
-    $$('.food-dialog, .confirm-dialog').forEach((dialog) => {
+    $('.food-dialog, .weight-dialog, .confirm-dialog').forEach((dialog) => {
       dialog.addEventListener('click', (event) => {
         if (event.target === dialog) dialog.close();
       });
