@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#18382d">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='88'%3E%F0%9F%A5%97%3C/text%3E%3C/svg%3E">
+  <meta name="description" content="食光是一款简洁、私密的个人饮食记录工具，帮助你记录三餐、热量与营养趋势。">
+  <title>食光 · 个人饮食日记</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <svg class="svg-sprite" aria-hidden="true">
+    <symbol id="i-bowl" viewBox="0 0 24 24"><path d="M4 11h16a1 1 0 0 1 1 1c0 4.42-3.58 8-8 8s-8-3.58-8-8a1 1 0 0 1 1-1Z"/><path d="M7 8.3c0-1.1 1.07-2 2.4-2 .35 0 .69.06 1 .18C10.7 4.47 12.25 3 14.1 3c1.2 0 2.26.67 2.83 1.66.32-.1.65-.16 1-.16 1.76 0 3.2 1.25 3.2 2.8 0 .76-.35 1.46-.92 1.98"/><path d="M3 21h18"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.66 6.34l1.41-1.41"/></symbol>
+    <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M16 3v4M8 3v4M3 10h18"/><path d="M8 14h.01M12 14h.01M16 14h.01M8 17.5h.01M12 17.5h.01"/></symbol>
+    <symbol id="i-chart" viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></symbol>
+    <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-arrow-left" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></symbol>
+    <symbol id="i-arrow-right" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+    <symbol id="i-droplet" viewBox="0 0 24 24"><path d="M12 2.7S6 9.2 6 14a6 6 0 0 0 12 0c0-4.8-6-11.3-6-11.3Z"/><path d="M9 15.2c.2 1.6 1.4 2.8 3 2.8"/></symbol>
+    <symbol id="i-flame" viewBox="0 0 24 24"><path d="M12.5 2.5s.5 3-1.8 5.2c-2.4 2.3-3.7 4.1-3.7 6.8a5 5 0 0 0 10 0c0-2.2-1-3.8-2.3-5.3-.5 1.4-1.4 2.2-2.2 2.2.7-2.9.6-5.8 0-8.9Z"/></symbol>
+    <symbol id="i-dumbbell" viewBox="0 0 24 24"><path d="M6.5 6.5v11M3.5 8.5v7M17.5 6.5v11M20.5 8.5v7M6.5 12h11"/></symbol>
+    <symbol id="i-wheat" viewBox="0 0 24 24"><path d="M12 21V7M12 12c-2.8 0-4.5-1.6-5-4 2.8 0 4.5 1.3 5 4ZM12 16c2.8 0 4.5-1.6 5-4-2.8 0-4.5 1.3-5 4ZM12 8c-2.1 0-3.6-1.1-4.5-3.2C9.7 4.7 11.2 5.9 12 8ZM12 12c2.8 0 4.5-1.6 5-4-2.8 0-4.5 1.3-5 4Z"/></symbol>
+    <symbol id="i-leaf" viewBox="0 0 24 24"><path d="M20.5 3.5C11 3 4 7.4 4 14c0 3.2 2.1 5.5 5.4 5.5 6.5 0 11-7 11.1-16Z"/><path d="M4.5 20.5c2.5-5.2 5.7-8.3 10-10.5"/></symbol>
+    <symbol id="i-edit" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L8 18l-4 1 1-4L16.5 3.5Z"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v5M14 11v5"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M4 21h16"/></symbol>
+    <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5M4 21h16"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4.2 4.2L19 6.5"/></symbol>
+    <symbol id="i-sparkles" viewBox="0 0 24 24"><path d="m12 3 1.25 3.75L17 8l-3.75 1.25L12 13l-1.25-3.75L7 8l3.75-1.25L12 3ZM19 14l.75 2.25L22 17l-2.25.75L19 20l-.75-2.25L16 17l2.25-.75L19 14ZM5 13l.75 2.25L8 16l-2.25.75L5 19l-.75-2.25L2 16l2.25-.75L5 13Z"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+    <symbol id="i-more" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></symbol>
+    <symbol id="i-settings" viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h2M10 17h10M14 4v6M6 14v6"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></symbol>
+    <symbol id="i-chevron-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+    <symbol id="i-undo" viewBox="0 0 24 24"><path d="M9 7 4 12l5 5"/><path d="M4 12h9a7 7 0 1 1 0 14"/></symbol>
+  </svg>
+
+  <div class="app-shell">
+    <aside class="sidebar">
+      <a class="brand" href="#" data-view-target="today" aria-label="食光首页">
+        <span class="brand-mark"><svg class="icon"><use href="#i-bowl"></use></svg></span>
+        <span class="brand-copy"><strong>食光</strong><small>MEAL JOURNAL</small></span>
+      </a>
+
+      <nav class="main-nav" aria-label="主导航">
+        <button class="nav-item active" type="button" data-view-target="today">
+          <svg class="icon"><use href="#i-sun"></use></svg><span>今日记录</span>
+        </button>
+        <button class="nav-item" type="button" data-view-target="calendar">
+          <svg class="icon"><use href="#i-calendar"></use></svg><span>饮食日历</span>
+        </button>
+        <button class="nav-item" type="button" data-view-target="trends">
+          <svg class="icon"><use href="#i-chart"></use></svg><span>营养趋势</span>
+        </button>
+        <button class="nav-item" type="button" data-view-target="goals">
+          <svg class="icon"><use href="#i-target"></use></svg><span>我的目标</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-bottom">
+        <div class="streak-card">
+          <div class="streak-icon"><svg class="icon"><use href="#i-flame"></use></svg></div>
+          <div><small>连续记录</small><strong><span id="streakDays">1</span> 天</strong></div>
+          <span class="streak-dots" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
+        </div>
+        <div class="profile">
+          <div class="avatar">食</div>
+          <div class="profile-copy"><strong>我的饮食日记</strong><span>数据仅保存在本机</span></div>
+          <span class="status-dot" title="本地存储正常"></span>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div class="topbar-heading">
+          <p class="eyebrow" id="pageEyebrow">DAILY NOTES · 2026</p>
+          <h1 id="pageTitle">今天，也好好吃饭</h1>
+        </div>
+        <div class="topbar-actions">
+          <button class="icon-button" type="button" id="topCalendarButton" aria-label="打开饮食日历" title="饮食日历">
+            <svg class="icon"><use href="#i-calendar"></use></svg>
+          </button>
+          <button class="button primary" type="button" id="quickAddButton">
+            <svg class="icon"><use href="#i-plus"></use></svg><span>记录一餐</span>
+          </button>
+        </div>
+      </header>
+
+      <section class="view active" id="view-today" aria-labelledby="pageTitle">
+        <div class="date-toolbar">
+          <div class="date-navigator">
+            <button class="round-button" type="button" id="prevDateButton" aria-label="前一天"><svg class="icon"><use href="#i-arrow-left"></use></svg></button>
+            <div class="selected-date">
+              <strong id="selectedDateLabel">10月19日 · 星期一</strong>
+              <span id="selectedDateTag">今天</span>
+            </div>
+            <button class="round-button" type="button" id="nextDateButton" aria-label="后一天"><svg class="icon"><use href="#i-arrow-right"></use></svg></button>
+          </div>
+          <button class="text-button" type="button" id="todayButton">回到今天</button>
+        </div>
+
+        <div class="demo-banner" id="demoBanner">
+          <span class="demo-banner-icon"><svg class="icon"><use href="#i-sparkles"></use></svg></span>
+          <p><strong>这是一份示例日记</strong><span>添加你的第一餐后，示例会自动移除。</span></p>
+          <button class="link-button" type="button" id="clearDemoButton">清空示例</button>
+        </div>
+
+        <div class="dashboard-grid">
+          <article class="card hero-card">
+            <div class="hero-glow hero-glow-one"></div>
+            <div class="hero-glow hero-glow-two"></div>
+            <div class="hero-copy">
+              <span class="hero-kicker"><i></i> 今日能量</span>
+              <h2 id="heroHeadline">吃得刚刚好，<br>身体自有答案。</h2>
+              <p id="heroMessage">早餐和午餐都很不错，晚餐还可以再清淡一点。</p>
+              <div class="hero-stats">
+                <div><strong id="heroMealCount">2</strong><span>已记录餐次</span></div>
+                <div><strong id="heroProtein">42<small>g</small></strong><span>蛋白质摄入</span></div>
+                <div><strong id="heroWater">4<small>/8</small></strong><span>今日饮水</span></div>
+              </div>
+            </div>
+            <div class="calorie-ring-wrap" aria-label="热量摄入进度">
+              <svg class="calorie-ring" viewBox="0 0 180 180" role="img">
+                <circle class="ring-track" cx="90" cy="90" r="76"></circle>
+                <circle class="ring-progress" id="calorieRing" cx="90" cy="90" r="76"></circle>
+              </svg>
+              <div class="ring-label"><span id="ringCalories">1,286</span><small>已摄入 / <b id="ringGoal">1,800</b> kcal</small><em id="ringRemaining">还可摄入 514</em></div>
+            </div>
+          </article>
+
+          <article class="card water-card">
+            <div class="card-heading compact">
+              <div><span class="section-kicker">HYDRATION</span><h3>今日饮水</h3></div>
+              <button class="mini-round" type="button" id="addWaterButton" aria-label="增加一杯水"><svg class="icon"><use href="#i-plus"></use></svg></button>
+            </div>
+            <div class="water-illustration" aria-hidden="true">
+              <svg viewBox="0 0 220 94"><path class="wave wave-back" d="M0 48c25-16 48-16 74 0s49 16 75 0 46-16 71 0v46H0Z"/><path class="wave wave-front" d="M0 61c28-17 52-17 77 0s50 17 76 0 45-17 67 0v33H0Z"/></svg>
+              <span id="waterBigNumber">4</span><small>杯</small>
+            </div>
+            <div class="water-meta"><span id="waterHint">再喝 4 杯就达成目标</span><strong id="waterGoalLabel">目标 8 杯</strong></div>
+            <div class="cups" id="waterCups" aria-label="饮水杯数"></div>
+          </article>
+
+          <article class="card meals-card">
+            <div class="card-heading">
+              <div><span class="section-kicker">MEALS</span><h3>今日饮食</h3></div>
+              <button class="button soft small" type="button" id="addMealButton"><svg class="icon"><use href="#i-plus"></use></svg>添加食物</button>
+            </div>
+            <div class="meal-groups" id="mealGroups"></div>
+          </article>
+
+          <aside class="side-stack">
+            <article class="card macro-card">
+              <div class="card-heading compact">
+                <div><span class="section-kicker">NUTRITION</span><h3>营养分布</h3></div>
+                <button class="icon-button tiny" type="button" data-view-target="trends" aria-label="查看营养趋势"><svg class="icon"><use href="#i-chart"></use></svg></button>
+              </div>
+              <div class="macro-list" id="macroList"></div>
+              <div class="macro-balance">
+                <div class="macro-avatar">🥗</div>
+                <div><strong id="macroBalanceTitle">营养搭配均衡</strong><span id="macroBalanceText">蛋白质还可以再补充一点</span></div>
+              </div>
+            </article>
+
+            <article class="card tip-card">
+              <span class="tip-tag"><svg class="icon"><use href="#i-leaf"></use></svg>今日小贴士</span>
+              <h3 id="tipTitle">慢慢吃，<br>让饱腹感跟上。</h3>
+              <p id="tipText">每餐用时至少 20 分钟，有助于减少无意识进食。</p>
+              <div class="tip-decoration" aria-hidden="true"><span>🥑</span><span>🥦</span><span>🍋</span></div>
+            </article>
+          </aside>
+
+          <article class="card weekly-card">
+            <div class="card-heading">
+              <div><span class="section-kicker">WEEKLY VIEW</span><h3>近 7 天热量</h3></div>
+              <div class="chart-legend"><i></i>每日摄入 <span></span><i class="goal-legend"></i>目标线</div>
+            </div>
+            <div class="weekly-summary">
+              <div><span>日均摄入</span><strong id="weeklyAverage">1,524<small> kcal</small></strong></div>
+              <div><span>达标天数</span><strong id="weeklyGoalDays">3<small> / 7 天</small></strong></div>
+              <div><span>较上周</span><strong class="trend-positive" id="weeklyChange">+6.2%</strong></div>
+            </div>
+            <div class="week-chart" id="weekChart"></div>
+          </article>
+
+          <article class="card habits-card">
+            <div class="card-heading compact">
+              <div><span class="section-kicker">HABITS</span><h3>今日习惯</h3></div>
+            </div>
+            <div class="habit-list">
+              <button class="habit-item" type="button" data-habit="veggies"><span class="habit-check"><svg class="icon"><use href="#i-check"></use></svg></span><span><strong>吃到 3 种蔬菜</strong><small>增加膳食纤维</small></span></button>
+              <button class="habit-item" type="button" data-habit="noLate"><span class="habit-check"><svg class="icon"><use href="#i-check"></use></svg></span><span><strong>睡前 3 小时不进食</strong><small>让肠胃好好休息</small></span></button>
+              <button class="habit-item" type="button" data-habit="mindful"><span class="habit-check"><svg class="icon"><use href="#i-check"></use></svg></span><span><strong>专注吃饭 20 分钟</strong><small>不看手机，慢慢咀嚼</small></span></button>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="view" id="view-calendar" aria-labelledby="pageTitle">
+        <div class="calendar-layout">
+          <article class="card calendar-card">
+            <div class="calendar-toolbar">
+              <div><span class="section-kicker">MEAL CALENDAR</span><h2 id="calendarMonthLabel">2026 年 10 月</h2></div>
+              <div class="calendar-controls">
+                <button class="round-button" type="button" id="prevMonthButton" aria-label="上个月"><svg class="icon"><use href="#i-arrow-left"></use></svg></button>
+                <button class="round-button" type="button" id="nextMonthButton" aria-label="下个月"><svg class="icon"><use href="#i-arrow-right"></use></svg></button>
+                <button class="text-button" type="button" id="monthTodayButton">本月</button>
+              </div>
+            </div>
+            <div class="calendar-weekdays" aria-hidden="true"><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span></div>
+            <div class="calendar-grid" id="calendarGrid"></div>
+            <div class="calendar-legend"><span><i class="legend-low"></i>低于目标</span><span><i class="legend-on"></i>接近目标</span><span><i class="legend-high"></i>超过目标</span><span><i class="legend-empty"></i>未记录</span></div>
+          </article>
+
+          <aside class="card day-detail-card" id="dayDetailCard">
+            <span class="section-kicker">DAY SUMMARY</span>
+            <div class="day-detail-heading">
+              <div><h2 id="dayDetailDate">10月19日</h2><p id="dayDetailWeekday">星期一</p></div>
+              <span class="day-badge" id="dayDetailBadge">今天</span>
+            </div>
+            <div class="day-calorie-summary">
+              <div class="mini-ring">
+                <svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="48"></circle><circle id="dayDetailRing" cx="60" cy="60" r="48"></circle></svg>
+                <span id="dayDetailCalories">0</span>
+              </div>
+              <div><strong id="dayDetailProgress">0%</strong><span>目标完成度</span><small id="dayDetailGoal">目标 1,800 kcal</small></div>
+            </div>
+            <div class="day-detail-stats" id="dayDetailStats"></div>
+            <div class="day-meal-preview" id="dayMealPreview"></div>
+            <button class="button primary full" type="button" id="viewSelectedDayButton">查看这天的记录</button>
+          </aside>
+        </div>
+      </section>
+
+      <section class="view" id="view-trends" aria-labelledby="pageTitle">
+        <div class="trend-stats" id="trendStats"></div>
+        <div class="trends-layout">
+          <article class="card trend-chart-card">
+            <div class="card-heading">
+              <div><span class="section-kicker">CALORIE TREND</span><h3>近 7 天摄入趋势</h3></div>
+              <span class="soft-tag" id="trendRangeLabel">10.13 — 10.19</span>
+            </div>
+            <div class="trend-chart" id="trendChart"></div>
+          </article>
+          <article class="card macro-donut-card">
+            <div class="card-heading compact">
+              <div><span class="section-kicker">MACRO MIX</span><h3>热量来源</h3></div>
+            </div>
+            <div class="donut-wrap">
+              <div class="donut" id="macroDonut"><span><strong id="donutCalories">0</strong><small>日均 kcal</small></span></div>
+            </div>
+            <div class="donut-legend" id="donutLegend"></div>
+          </article>
+        </div>
+        <article class="card insight-card">
+          <div class="insight-mark"><svg class="icon"><use href="#i-sparkles"></use></svg></div>
+          <div><span class="section-kicker">A GENTLE INSIGHT</span><h3 id="insightTitle">你的饮食节奏很稳定</h3><p id="insightText">最近 7 天的热量摄入波动不大，继续保持规律的三餐节奏。</p></div>
+        </article>
+      </section>
+
+      <section class="view" id="view-goals" aria-labelledby="pageTitle">
+        <div class="goals-layout">
+          <article class="card goal-form-card">
+            <div class="card-heading">
+              <div><span class="section-kicker">YOUR TARGETS</span><h2>每日营养目标</h2><p>目标可以随时调整，所有统计会自动重新计算。</p></div>
+              <div class="goal-icon"><svg class="icon"><use href="#i-target"></use></svg></div>
+            </div>
+            <form id="goalForm">
+              <div class="goal-fields">
+                <label class="field-card calorie-field"><span class="field-icon"><svg class="icon"><use href="#i-flame"></use></svg></span><span><small>每日热量</small><strong><input type="number" name="calories" min="800" max="5000" step="10" required><em>kcal</em></strong></span></label>
+                <label class="field-card protein-field"><span class="field-icon"><svg class="icon"><use href="#i-dumbbell"></use></svg></span><span><small>蛋白质</small><strong><input type="number" name="protein" min="20" max="400" step="1" required><em>g</em></strong></span></label>
+                <label class="field-card carbs-field"><span class="field-icon"><svg class="icon"><use href="#i-wheat"></use></svg></span><span><small>碳水化合物</small><strong><input type="number" name="carbs" min="30" max="700" step="1" required><em>g</em></strong></span></label>
+                <label class="field-card fat-field"><span class="field-icon"><svg class="icon"><use href="#i-leaf"></use></svg></span><span><small>脂肪</small><strong><input type="number" name="fat" min="10" max="250" step="1" required><em>g</em></strong></span></label>
+                <label class="field-card water-field"><span class="field-icon"><svg class="icon"><use href="#i-droplet"></use></svg></span><span><small>每日饮水</small><strong><input type="number" name="water" min="1" max="20" step="1" required><em>杯</em></strong></span></label>
+              </div>
+              <div class="goal-note"><svg class="icon"><use href="#i-sparkles"></use></svg><p>建议根据年龄、体重和活动量设置目标。本工具仅用于日常记录，不替代专业营养或医疗建议。</p></div>
+              <button class="button primary" type="submit"><svg class="icon"><use href="#i-check"></use></svg>保存目标</button>
+            </form>
+          </article>
+
+          <aside class="goals-side">
+            <article class="card data-card">
+              <span class="section-kicker">YOUR DATA</span>
+              <h3>数据与隐私</h3>
+              <p>所有记录只保存在当前浏览器，不会上传到服务器。</p>
+              <button class="data-action" type="button" id="exportButton"><svg class="icon"><use href="#i-download"></use></svg><span><strong>导出备份</strong><small>下载 JSON 数据文件</small></span></button>
+              <button class="data-action" type="button" id="importButton"><svg class="icon"><use href="#i-upload"></use></svg><span><strong>导入备份</strong><small>从之前的数据文件恢复</small></span></button>
+              <input type="file" id="importFile" accept="application/json" hidden>
+              <button class="data-action danger" type="button" id="resetButton"><svg class="icon"><use href="#i-trash"></use></svg><span><strong>清空全部记录</strong><small>此操作无法撤销</small></span></button>
+            </article>
+            <article class="card about-card">
+              <div class="about-mark"><svg class="icon"><use href="#i-bowl"></use></svg></div>
+              <h3>食光</h3>
+              <p>认真记录，也轻松生活。<br>愿你每一餐都吃得自在。</p>
+              <span>MEAL JOURNAL · LOCAL FIRST</span>
+            </article>
+          </aside>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <nav class="mobile-nav" aria-label="移动端导航">
+    <button class="active" type="button" data-view-target="today"><svg class="icon"><use href="#i-sun"></use></svg><span>今日</span></button>
+    <button type="button" data-view-target="calendar"><svg class="icon"><use href="#i-calendar"></use></svg><span>日历</span></button>
+    <button class="mobile-add" type="button" id="mobileAddButton" aria-label="记录一餐"><svg class="icon"><use href="#i-plus"></use></svg></button>
+    <button type="button" data-view-target="trends"><svg class="icon"><use href="#i-chart"></use></svg><span>趋势</span></button>
+    <button type="button" data-view-target="goals"><svg class="icon"><use href="#i-target"></use></svg><span>目标</span></button>
+  </nav>
+
+  <dialog class="food-dialog" id="foodDialog">
+    <form class="dialog-panel" id="foodForm">
+      <div class="dialog-header">
+        <div><span class="section-kicker">ADD A MEAL</span><h2 id="foodDialogTitle">记录一份食物</h2></div>
+        <button class="icon-button" type="button" data-close-dialog="foodDialog" aria-label="关闭"><svg class="icon"><use href="#i-close"></use></svg></button>
+      </div>
+      <input type="hidden" name="entryId" id="entryId">
+      <input type="hidden" name="entryDate" id="entryDate">
+      <div class="meal-picker" id="mealPicker" role="group" aria-label="选择餐次"></div>
+      <div class="quick-picks">
+        <span>快速选择</span>
+        <div id="quickPicks"></div>
+      </div>
+      <div class="nutrition-estimator" id="nutritionEstimator" aria-live="polite">
+        <span class="estimator-icon"><svg class="icon"><use href="#i-sparkles"></use></svg></span>
+        <div class="estimator-body">
+          <div class="estimator-head"><strong>自动营养估算</strong><span id="nutritionStatus">等待输入</span></div>
+          <div class="estimator-values" id="nutritionPreview">
+            <span><b>—</b><small>kcal</small></span><span><b>—</b><small>蛋白质</small></span><span><b>—</b><small>碳水</small></span><span><b>—</b><small>脂肪</small></span>
+          </div>
+          <small class="estimator-note" id="nutritionNote">输入食物名称和分量，热量与营养会自动填入下方。</small>
+        </div>
+      </div>
+      <div class="form-grid">
+        <label class="form-field span-2"><span>食物名称</span><input type="text" name="name" id="foodName" list="foodSuggestions" autocomplete="off" placeholder="例如：鸡胸肉 / 番茄鸡蛋面" maxlength="40" required></label>
+        <label class="form-field"><span>份量</span><input type="text" name="amount" id="foodAmount" placeholder="例如：150g / 1 碗 / 2 片" maxlength="30"></label>
+        <label class="form-field"><span>热量 <em>kcal</em></span><input type="number" name="calories" id="foodCalories" min="0" max="5000" step="1" placeholder="0" required></label>
+        <label class="form-field"><span>蛋白质 <em>g</em></span><input type="number" name="protein" id="foodProtein" min="0" max="500" step="0.1" placeholder="0"></label>
+        <label class="form-field"><span>碳水 <em>g</em></span><input type="number" name="carbs" id="foodCarbs" min="0" max="500" step="0.1" placeholder="0"></label>
+        <label class="form-field"><span>脂肪 <em>g</em></span><input type="number" name="fat" id="foodFat" min="0" max="300" step="0.1" placeholder="0"></label>
+        <label class="form-field"><span>时间</span><input type="time" name="time" id="foodTime" required></label>
+      </div>
+      <datalist id="foodSuggestions"></datalist>
+      <div class="dialog-footer">
+        <span>数据会自动保存在本机</span>
+        <div><button class="button ghost" type="button" data-close-dialog="foodDialog">取消</button><button class="button primary" type="submit"><svg class="icon"><use href="#i-check"></use></svg><span id="foodSubmitLabel">添加记录</span></button></div>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog class="confirm-dialog" id="confirmDialog">
+    <form class="confirm-panel" id="confirmForm">
+      <div class="confirm-icon"><svg class="icon"><use href="#i-trash"></use></svg></div>
+      <h2 id="confirmTitle">确定清空吗？</h2>
+      <p id="confirmText">所有饮食记录、饮水记录和目标设置都将被删除，且无法恢复。</p>
+      <div class="confirm-actions">
+        <button class="button ghost" type="button" data-close-dialog="confirmDialog">取消</button>
+        <button class="button danger" type="submit" id="confirmActionButton">确认清空</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" aria-live="polite">
+    <span id="toastMessage"></span>
+    <button type="button" id="toastAction">撤销</button>
+  </div>
+
+  <script src="./app.js"></script>
+</body>
+</html>

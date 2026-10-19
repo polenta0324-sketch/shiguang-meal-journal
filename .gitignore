@@ -1,0 +1,20 @@
+# Unrelated files in this shared workspace
+/ff-*.png
+/flow-planner.*
+/flow-worker.*
+/heihu-work-order-flow.*
+/preview-*.png
+
+# Local test artifacts
+.edge-*/
+*-snippet.txt
+test-*.ps1
+capture-*.ps1
+
+# System files
+.DS_Store
+Thumbs.db
+Thumbs.db:encryptable
+*.log
+.tools/
+
