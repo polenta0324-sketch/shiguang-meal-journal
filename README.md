@@ -1,5 +1,8 @@
 # 食光 · 个人饮食日记
 
+
+**在线访问：** https://polenta0324-sketch.github.io/shiguang-meal-journal/
+
 一个零依赖、可离线使用的个人饮食记录网站。直接打开 `index.html` 即可使用，不需要安装依赖或启动服务器。
 
 ![食光 · 个人饮食日记](docs/preview-desktop.png)
